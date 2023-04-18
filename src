@@ -1,0 +1,120 @@
+import edu.princeton.cs.algs4.StdRandom;
+import edu.princeton.cs.algs4.StdStats;
+import edu.princeton.cs.algs4.WeightedQuickUnionUF;
+public class Percolation {
+    int n = 0;
+    int[][] arr;
+    int[] newArr;
+    WeightedQuickUnionUF uf;
+    // creates n-by-n grid, with all sites initially blocked
+    public Percolation(int n){
+        this.n = n;
+        arr = new int[n][n];
+        uf = new WeightedQuickUnionUF(n^2 + 1);
+        newArr = new int[n^2 + 1]; // + 2 or 1?
+        for (int i = 0; i < newArr.length; i++) {
+            if (i <= n){
+                newArr[i] = 0;
+            }
+            if (i >= (n^2 - n)){
+                newArr[i] = 1;
+            }
+        }
+    }
+
+    // opens the site (row, col) if it is not open already
+    public void open(int row, int col){ // use union
+        if(arr[row][col] == 0){
+            arr[row][col] = 1;
+        }
+        if(isOpen(row + 1, col)){
+            if (row + 1 < 0 || row + 1 > n){
+                throw new IndexOutOfBoundsException("row index i out of bounds"); // if adjacent doesn't exist
+            } else {
+                uf.union(newArr[xyTo1D(row + 1, col)], newArr[xyTo1D(row, col)]); // connects adjacent if open
+            }
+        }
+        if(isOpen(row - 1, col)){
+            if (row - 1 < 0 || row - 1 > n){
+                throw new IndexOutOfBoundsException("row index i out of bounds");
+            } else {
+                uf.union(newArr[xyTo1D(row - 1, col)], newArr[xyTo1D(row, col)]);
+            }
+        }
+        if(isOpen(row, col + 1)){
+            if (col + 1 < 0 || col + 1 > n){
+                throw new IndexOutOfBoundsException("row index i out of bounds");
+            } else {
+                uf.union(newArr[xyTo1D(row, col + 1)], newArr[xyTo1D(row, col)]);
+            }
+        }
+        if(isOpen(row + 1, col - 1)){
+            if(isOpen(row, col + 1)){
+                if (col - 1 < 0 || col - 1 > n){
+                    throw new IndexOutOfBoundsException("row index i out of bounds");
+                } else {
+                    uf.union(newArr[xyTo1D(row, col - 1)], newArr[xyTo1D(row, col)]);
+                }
+            }
+        }
+    }
+
+    // is the site (row, col) open?
+    public boolean isOpen(int row, int col){
+        if (arr[row][col] == 1){
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    // is the site (row, col) full?
+    public boolean isFull(int row, int col){
+        if (arr[row][col] == 1){
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    // returns the number of open sites
+    public int numberOfOpenSites(){ // fix
+        int counter = 0;
+        for (int i = 0; i < arr.length; i++) {
+            for (int j = 0; j < arr.length; j++) {
+                if (arr[i][j] == 1){
+                    counter++;
+                }
+            }
+        }
+        return counter;
+
+    }
+
+    public int xyTo1D(int x, int y){
+
+        return (int) n * x + y ; // returns position in the 1D array
+    }
+
+    // does the system percolate?
+    public boolean percolates(){ // fix
+        if(uf.find(newArr[0]) == uf.find(newArr[newArr.length])){
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    // test client (optional)
+    public static void main(String[] args){
+        Percolation percolation = new Percolation(5);
+        percolation.open(0, 0);
+        percolation.open(1, 0);
+        percolation.open(1, 1);
+        percolation.open(2, 1);
+        percolation.open(2, 2);
+        percolation.open(3, 2);
+        percolation.open(4, 2);
+        percolation.percolates();
+    }
+}
